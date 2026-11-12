@@ -35,7 +35,8 @@ function CameraRig({ mode, view, reduced, onReady }: Pick<Props, 'mode' | 'view'
   }, [mode, view, mobile, compact, reduced, onReady]);
   useFrame((_, delta) => {
     const damp = 1 - Math.exp(-delta * 2.5);
-    smoothPointer.current.lerp(reduced || mobile ? new THREE.Vector2() : pointer, damp);
+    if (reduced || mobile) smoothPointer.current.set(0, 0);
+    else smoothPointer.current.lerp(pointer, damp);
     const r = rig.current;
     camera.position.set(r.x + smoothPointer.current.x * .5, r.y + smoothPointer.current.y * .22, r.z);
     camera.lookAt(r.tx, r.ty, r.tz);
