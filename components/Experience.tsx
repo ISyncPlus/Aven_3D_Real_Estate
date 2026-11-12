@@ -47,10 +47,11 @@ export default function Experience() {
   }, [notice]);
   useEffect(() => {
     if (!bedroomMenu) return;
+    bedroomFilter.current?.querySelector<HTMLElement>('[role="option"][aria-selected="true"]')?.focus();
     const closeOnOutsideClick = (event: MouseEvent) => {
       if (bedroomFilter.current && !bedroomFilter.current.contains(event.target as Node)) setBedroomMenu(false);
     };
-    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setBedroomMenu(false); };
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') { setBedroomMenu(false); bedroomFilter.current?.querySelector<HTMLButtonElement>('.bedroom-trigger')?.focus(); } };
     document.addEventListener('mousedown', closeOnOutsideClick);
     document.addEventListener('keydown', closeOnEscape);
     return () => {
@@ -66,7 +67,7 @@ export default function Experience() {
     return () => context.revert();
   }, [mode, reduced]);
   const navigate = (next: ViewMode) => { setMode(next); setMenu(false); setHovered(null); if (next === 'home') setSelected(null); };
-  const selectUnit = useCallback((unit: Residence) => { setSelected(unit); setFloor(unit.floor); setMode('residences'); setHovered(null); }, []);
+  const selectUnit = useCallback((unit: Residence) => { setSelected(unit); setFloor(unit.floor); if (bedrooms && unit.bedrooms !== bedrooms) setBedrooms(0); setMode('residences'); setHovered(null); }, [bedrooms]);
   const openVisit = () => { setMenu(false); dialog.current?.showModal(); };
   const fullScreen = async () => {
     try { if (document.fullscreenElement) await document.exitFullscreen(); else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen(); else setNotice('Full screen is not supported by this browser.'); }
@@ -118,7 +119,13 @@ export default function Experience() {
         <h1 id="residence-heading" className="reveal">Your next<br/>perspective.</h1>
         <p className="explorer-intro reveal">One, two and three bedroom homes, each with a private terrace. Choose your floor and find your fit.</p>
         <div className="floor-selector reveal"><div className="control-label"><span>Floor</span><span>{availableOnFloor(floor).length} available</span></div><div className="floor-buttons" role="group" aria-label="Select a floor">{Array.from({ length: 8 }, (_, i) => i + 1).map(n => <button key={n} onClick={() => { setFloor(n); setSelected(null); }} aria-pressed={floor === n} aria-label={`Floor ${n}`}>{n}</button>)}</div></div>
-        <div className="filter-row reveal"><span id="bedroom-filter-label">Residences</span><div className={`bedroom-filter ${bedroomMenu ? 'is-open' : ''}`} ref={bedroomFilter}><button className="bedroom-trigger" type="button" aria-haspopup="listbox" aria-expanded={bedroomMenu} aria-labelledby="bedroom-filter-label bedroom-filter-value" onClick={() => setBedroomMenu(open => !open)}><span id="bedroom-filter-value">{bedrooms ? `${bedrooms} bedroom${bedrooms === 1 ? '' : 's'}` : 'All bedrooms'}</span><span className="bedroom-chevron" aria-hidden="true"/></button>{bedroomMenu && <div className="bedroom-menu" role="listbox" aria-label="Filter by bedrooms">{bedroomOptions.map(([value, label]) => <button key={value} type="button" role="option" aria-selected={bedrooms === value} className={bedrooms === value ? 'is-selected' : ''} onClick={() => { setBedrooms(value); setBedroomMenu(false); }}>{label}{bedrooms === value && <Icon name="check" size={14}/>}</button>)}</div>}</div></div>
+        <div className="filter-row reveal"><span id="bedroom-filter-label">Residences</span><div className={`bedroom-filter ${bedroomMenu ? 'is-open' : ''}`} ref={bedroomFilter}><button className="bedroom-trigger" type="button" aria-haspopup="listbox" aria-expanded={bedroomMenu} aria-labelledby="bedroom-filter-label bedroom-filter-value" onClick={() => setBedroomMenu(open => !open)}><span id="bedroom-filter-value">{bedrooms ? `${bedrooms} bedroom${bedrooms === 1 ? '' : 's'}` : 'All bedrooms'}</span><span className="bedroom-chevron" aria-hidden="true"/></button>{bedroomMenu && <div className="bedroom-menu" role="listbox" aria-label="Filter by bedrooms" onKeyDown={event => {
+          if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+          event.preventDefault();
+          const options = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="option"]'));
+          const index = options.indexOf(document.activeElement as HTMLButtonElement);
+          options[(index + (event.key === 'ArrowDown' ? 1 : -1) + options.length) % options.length]?.focus();
+        }}>{bedroomOptions.map(([value, label]) => <button key={value} type="button" role="option" aria-selected={bedrooms === value} className={bedrooms === value ? 'is-selected' : ''} onClick={() => { setBedrooms(value); setSelected(null); setBedroomMenu(false); bedroomFilter.current?.querySelector<HTMLButtonElement>('.bedroom-trigger')?.focus(); }}>{label}{bedrooms === value && <Icon name="check" size={14}/>}</button>)}</div>}</div></div>
         <div className="unit-list reveal" aria-live="polite">{filtered.length ? filtered.map(unit => <button className={`unit-row ${selected?.id === unit.id ? 'selected' : ''}`} key={unit.id} disabled={!unit.available} onClick={() => selectUnit(unit)} onFocus={() => setHovered(unit)} onBlur={() => setHovered(null)} onMouseEnter={() => setHovered(unit)} onMouseLeave={() => setHovered(null)} aria-label={`Apartment ${unit.id}, ${unit.bedrooms} ${unit.bedrooms === 1 ? 'bedroom' : 'bedrooms'}, ${unit.area} square metres, ${unit.available ? 'available' : 'reserved'}`}><span className="unit-id">{unit.id}</span><span>{unit.bedrooms} bed<span className="unit-area">{unit.area} m²</span></span><span className="unit-state">{unit.available ? <Icon name="right" size={18}/> : 'Reserved'}</span></button>) : <p className="empty-state">No homes of this size on floor {floor}. Try another floor or bedroom count.</p>}</div>
         <p className="residence-starting-price reveal">Residences from ₦185 million</p>
       </section>}

@@ -1,7 +1,7 @@
 # Aven — a building you can explore
 
 The project began empty; real estate reference.mp4 was subsequently supplied and reviewed frame by frame. No 3D assets are supplied.
-Inventory: Aria, eight storeys, warm beige concrete, deep balconies, charcoal window mullions,
+Inventory: Aven, eight storeys, warm beige concrete, deep balconies, charcoal window mullions,
 blue-gray dusk, amber interior light, generous glazing, rooftop garden, a planted urban street.
 Idea: Aven's eight inhabited levels become an interactive architectural index.
 Audience: prospective residents. Primary action: explore a home, then prepare a viewing request.
@@ -21,3 +21,5 @@ Reference observations: 14.27-second vertical recording of a desktop site; main 
 
 Naming: user requested a different name; finished brand is Aven. The video retains its original Aria branding.
 Neighboring architecture: eight individually composed blocks in limestone, brick, and pale plaster; recessed glazing, sills, lintels, mullions, projecting balconies, cornices, roof parapets, services, louvers and solar panels. All repeated detail is instanced.
+
+Final visual pass: local CC0 PBR timber, stone normal/roughness, upholstery normals, interior HDR light; layered bedding, cushions, fitted wardrobes, kitchen appliances and fixtures, shower/vanity/toilet, terrace furniture and planters, branded entry and furnished roof terrace. Business content uses Lagos and NGN as confirmed by the client; test/preview copy was removed from the product UI.
