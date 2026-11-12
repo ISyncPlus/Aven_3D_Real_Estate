@@ -11,7 +11,7 @@
 
 ## Browser review
 
-Inspected the actual WebGL experience in the in-app browser at 1440×900, 768×1024, and 390×844. Reviewed desktop exterior, furnished cutaway, tablet architecture, mobile hero, and the complete mobile residence page. Tested floor selection, bedroom filtering, reserved homes, keyboard activation, entry/back navigation, day/dusk controls, native dialog validation, calendar selection, and viewing confirmation. No horizontal overflow was observed in the inspected layouts. The local Manrope font loaded successfully.
+Inspected the actual WebGL experience in the in-app browser at 1440×900, 768×1024, and 390×844. Reviewed desktop exterior, furnished cutaway, tablet architecture, mobile hero, and the complete mobile residence page. Tested floor selection, bedroom filtering with Arrow/Enter/Escape support, reserved homes, keyboard activation, entry/back navigation, day/dusk controls, native dialog validation, calendar selection, and viewing confirmation. No horizontal overflow was observed in the inspected layouts. The local Manrope font loaded successfully.
 
 The video was reviewed as a frame sequence. The design follows its facade composition, left-hand headline, warm architectural palette, restrained UI, building camera move, and furnished cutaway sequence. The finished name is Aven, per the client's subsequent request.
 
