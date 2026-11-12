@@ -8,7 +8,10 @@ export async function POST(request: Request) {
   try {
     if (Number(request.headers.get('content-length') || 0) > 4096) return Response.json({ error: 'Please shorten your request.' }, { status: 413 });
     const origin = request.headers.get('origin');
-    if (origin && origin !== new URL(request.url).origin) return Response.json({ error: 'Please send your request through the Aven website.' }, { status: 403 });
+    const requestUrl = new URL(request.url);
+    // Next can normalize the internal URL to localhost; retain exact scheme, host and port validation.
+    const expectedOrigin = requestUrl.protocol + '//' + (request.headers.get('host') || requestUrl.host);
+    if (origin && origin !== expectedOrigin) return Response.json({ error: 'Please send your request through the Aven website.' }, { status: 403 });
     const text = await request.text();
     if (Buffer.byteLength(text) > 4096) return Response.json({ error: 'Please shorten your request.' }, { status: 413 });
     let input: unknown;
