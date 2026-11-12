@@ -59,6 +59,21 @@ export default function Experience() {
       document.removeEventListener('keydown', closeOnEscape);
     };
   }, [bedroomMenu]);
+  useEffect(() => {
+    if (!window.history.state?.avenRoot) {
+      window.history.replaceState({ avenMode: 'home', avenRoot: true }, '', window.location.href);
+      window.history.pushState({ avenMode: 'home', avenInitial: true }, '', window.location.href);
+    }
+    const restoreView = (event: PopStateEvent) => {
+      const previousMode = event.state?.avenMode as ViewMode | undefined;
+      setMode(previousMode || 'home');
+      setMenu(false);
+      setHovered(null);
+      if (!previousMode || previousMode === 'home') setSelected(null);
+    };
+    window.addEventListener('popstate', restoreView);
+    return () => window.removeEventListener('popstate', restoreView);
+  }, []);
   useLayoutEffect(() => {
     if (reduced) return;
     const context = gsap.context(() => {
@@ -66,8 +81,17 @@ export default function Experience() {
     }, root);
     return () => context.revert();
   }, [mode, reduced]);
-  const navigate = (next: ViewMode) => { setMode(next); setMenu(false); setHovered(null); if (next === 'home') setSelected(null); };
-  const selectUnit = useCallback((unit: Residence) => { setSelected(unit); setFloor(unit.floor); if (bedrooms && unit.bedrooms !== bedrooms) setBedrooms(0); setMode('residences'); setHovered(null); }, [bedrooms]);
+  const navigate = (next: ViewMode) => {
+    if (mode !== next) window.history.pushState({ avenMode: next }, '', window.location.href);
+    setMode(next);
+    setMenu(false);
+    setHovered(null);
+    if (next === 'home') setSelected(null);
+  };
+  const goBack = () => {
+    window.history.back();
+  };
+  const selectUnit = useCallback((unit: Residence) => { setSelected(unit); setFloor(unit.floor); if (bedrooms && unit.bedrooms !== bedrooms) setBedrooms(0); navigate('residences'); }, [bedrooms, mode]);
   const openVisit = () => { setMenu(false); dialog.current?.showModal(); };
   const fullScreen = async () => {
     try { if (document.fullscreenElement) await document.exitFullscreen(); else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen(); else setNotice('Full screen is not supported by this browser.'); }
@@ -99,7 +123,7 @@ export default function Experience() {
         <p className="hero-detail reveal">32 residences. One considered address.</p>
       </section>}
       {mode === 'architecture' && <section className="editorial-panel">
-        <button className="back-link reveal" onClick={() => navigate('home')}><Icon name="left" size={17}/> Back to Aven</button>
+        <button className="back-link reveal" onClick={goBack}><Icon name="left" size={17}/> Back to Aven</button>
         <h1 className="reveal">Considered.<br/>Every angle.</h1>
         <p className="reveal">Warm stone tones, full-height glazing and deep private terraces. Architecture that gives Lagos living room to breathe.</p>
         <dl className="architecture-details reveal"><div><dt>Eight</dt><dd>residential levels</dd></div><div><dt>32</dt><dd>individual homes</dd></div></dl>
@@ -107,7 +131,7 @@ export default function Experience() {
         <button className="text-action reveal" onClick={() => navigate('residences')}>Find your perspective <Icon name="arrow" size={18}/></button>
       </section>}
       {mode === 'setting' && <section className="editorial-panel setting-panel">
-        <button className="back-link reveal" onClick={() => navigate('home')}><Icon name="left" size={17}/> Back to Aven</button>
+        <button className="back-link reveal" onClick={goBack}><Icon name="left" size={17}/> Back to Aven</button>
         <h1 className="reveal">Lagos.<br/>At your pace.</h1>
         <p className="reveal">Aven brings a more considered rhythm to city life. Private outdoor spaces, a landscaped arrival and the reassurance of a managed residence.</p>
         <ul className="setting-list reveal"><li><Icon name="leaf"/> Landscaped arrival & resident parking</li><li><Icon name="sun"/> Private terraces for every home</li><li><Icon name="building"/> Rooftop garden & residents’ lounge</li></ul>
@@ -115,7 +139,7 @@ export default function Experience() {
         <button className="text-action reveal" onClick={() => { navigate('home'); setView(0); }}>Return to the building <Icon name="arrow" size={18}/></button>
       </section>}
       {mode === 'residences' && <section className="residence-explorer" aria-labelledby="residence-heading" data-ui>
-        <button className="back-link reveal" onClick={() => navigate('home')}><Icon name="left" size={17}/> Back to Aven</button>
+        <button className="back-link reveal" onClick={goBack}><Icon name="left" size={17}/> Back to Aven</button>
         <h1 id="residence-heading" className="reveal">Your next<br/>perspective.</h1>
         <p className="explorer-intro reveal">One, two and three bedroom homes, each with a private terrace. Choose your floor and find your fit.</p>
         <div className="floor-selector reveal"><div className="control-label"><span>Floor</span><span>{availableOnFloor(floor).length} available</span></div><div className="floor-buttons" role="group" aria-label="Select a floor">{Array.from({ length: 8 }, (_, i) => i + 1).map(n => <button key={n} onClick={() => { setFloor(n); setSelected(null); }} aria-pressed={floor === n} aria-label={`Floor ${n}`}>{n}</button>)}</div></div>
@@ -130,7 +154,7 @@ export default function Experience() {
         <p className="residence-starting-price reveal">Residences from ₦185 million</p>
       </section>}
       {apartment && selected && <>
-        <button className="apartment-back back-link reveal" onClick={() => navigate('residences')}><Icon name="left" size={18}/> Back to the building</button>
+        <button className="apartment-back back-link reveal" onClick={goBack}><Icon name="left" size={18}/> Back to the building</button>
         <section className="apartment-details" data-ui>
           <p className="availability reveal"><span/> Available residence</p>
           <h1 className="reveal">Residence {selected.id}</h1><p className="apartment-name reveal">{selected.name} · Lagos, Nigeria</p><div className="residence-price reveal"><span>Purchase price</span><strong>{money(selected.price)}</strong></div>
@@ -144,7 +168,7 @@ export default function Experience() {
       </>}
     </div>
 
-    {!apartment && mode === 'residences' && selected && <aside className="selection-card" aria-label={`Selected apartment ${selected.id}`} data-ui><button className="selection-close icon-button" onClick={() => setSelected(null)} aria-label="Close apartment preview"><Icon name="close" size={17}/></button><p className="availability"><span/> Available residence</p><h2>Apartment {selected.id}</h2><p className="selection-price">{money(selected.price)}</p><p className="selection-description">Floor {selected.floor} <span>·</span> {selected.bedrooms} {selected.bedrooms === 1 ? 'bedroom' : 'bedrooms'} <span>·</span> {selected.area} m²</p><button className="text-action" onClick={() => { setHovered(null); setMode('apartment'); }}>Step inside <Icon name="arrow" size={18}/></button></aside>}
+    {!apartment && mode === 'residences' && selected && <aside className="selection-card" aria-label={`Selected apartment ${selected.id}`} data-ui><button className="selection-close icon-button" onClick={() => setSelected(null)} aria-label="Close apartment preview"><Icon name="close" size={17}/></button><p className="availability"><span/> Available residence</p><h2>Apartment {selected.id}</h2><p className="selection-price">{money(selected.price)}</p><p className="selection-description">Floor {selected.floor} <span>·</span> {selected.bedrooms} {selected.bedrooms === 1 ? 'bedroom' : 'bedrooms'} <span>·</span> {selected.area} m²</p><button className="text-action" onClick={() => navigate('apartment')}>Step inside <Icon name="arrow" size={18}/></button></aside>}
     {!apartment && mode === 'home' && <div className="scene-description"><span className="scene-description-mark"/><div>Architecture with intention.<span>A home with your name on it.</span></div></div>}
     <footer className="footer" data-ui>
       <div className="footer-brand"><span>Aven residences</span><span className="footer-tag">Lagos, Nigeria</span></div>
